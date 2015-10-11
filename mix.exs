@@ -22,8 +22,14 @@ defmodule HTTPoison.Mixfile do
 
   defp deps do
     [
-      #{:katipo, "~> 0.2.2"},
-      {:katipo, git: "https://github.com/zoldar/katipo.git", branch: "broken-head", compile: "make"},
+      {:katipo, git: "https://github.com/zoldar/katipo.git", branch: "patch-test"},
+
+      # for katipo from GIT
+      {:cowlib, "1.0.0", override: true},
+      {:gproc, "0.5.0", override: true},
+      {:uri, "0.1.0", override: true},
+      {:quintana, "0.2.0", override: true},
+
       {:hackney, "~> 1.3.1"},
       {:exjsx, "~> 3.1", only: :test},
       {:httparrot, "~> 0.3.4", only: :test},

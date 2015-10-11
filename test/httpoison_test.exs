@@ -23,8 +23,6 @@ defmodule HTTPoisonTest do
     end
   end
 
-  # AG FIXME: Broken head method impl in katipo
-  @tag :skip
   test "head" do
     assert_response HTTPoison.head("localhost:8080/get"), fn(response) ->
       assert response.body == ""
@@ -50,14 +48,10 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.put("localhost:8080/put", "test")
   end
 
-  # AG FIXME: missing method in katipo
-  @tag :skip
   test "patch" do
     assert_response HTTPoison.patch("localhost:8080/patch", "test")
   end
 
-  # AG FIXME: missing method in katipo
-  @tag :skip
   test "delete" do
     assert_response HTTPoison.delete("localhost:8080/delete")
   end
@@ -84,14 +78,12 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.get("http://localhost:8080/basic-auth/user/pass", [], [ katipo: katipo ])
   end
 
-  # AG FIXME: make test rely on local resources
+  # AG TODO: make test rely on local resources
   test "http_auth digest katipo option" do
     katipo = [http_auth: :digest, username: "user", password: "pass"]
     assert_response HTTPoison.get("http://httpbin.org/digest-auth/auth/user/pass", [], [ katipo: katipo ])
   end
 
-  # AG FIXME: broken head impl in katipo
-  @tag :skip
   test "explicit http scheme" do
     assert_response HTTPoison.head("http://localhost:8080/get")
   end
@@ -106,8 +98,6 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.get("https://localhost:8433/get", [], ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file])
   end
 
-  # AG FIXME: broken head impl in katipo
-  @tag :skip
   test "char list URL" do
     assert_response HTTPoison.head('localhost:8080/get')
   end
