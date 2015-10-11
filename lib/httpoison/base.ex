@@ -382,22 +382,59 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
-  def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
-    hn_options = build_hackney_options(module, options)
+  defp build_katipo_request(module, method, request_url, request_body, request_headers, options) do
+    connect_timeoutms = Keyword.get options, :timeout
+    timeout_ms = Keyword.get options, :recv_timeout
+    proxy = Keyword.get options, :proxy
 
-    case :hackney.request(method, request_url, request_headers,
-                          request_body, hn_options) do
-      {:ok, status_code, headers, _client} when status_code in [204, 304] ->
+    katipo_body = build_katipo_body(request_body)
+
+    base_req = %{
+      method: method,
+      url: request_url,
+      body: katipo_body,
+      headers: request_headers}
+
+    katipo_options = Keyword.get options, :katipo, []
+
+    if connect_timeoutms, do: katipo_options = [{:connect_timeoutms, connect_timeoutms} | katipo_options]
+    if timeout_ms, do: katipo_options = [{:timeout_ms, timeout_ms} | katipo_options]
+    if proxy, do: katipo_options = [{:proxy, proxy} | katipo_options]
+
+    options_dict = Enum.into(katipo_options, %{})
+
+    Map.merge(base_req, options_dict)
+  end
+
+  @doc false
+  defp build_katipo_body({:form, data}) do
+    Enum.map(data, fn ({field, data}) -> {stringify(field), data} end)
+  end
+
+  @doc false
+  defp build_katipo_body(body) do
+    body
+  end
+
+  defp stringify(input) when is_atom(input) do
+    Atom.to_string(input)
+  end
+
+  defp stringify(input) do
+    input
+  end
+
+  @doc false
+  def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
+    request = build_katipo_request(module, method, request_url, request_body, request_headers, options)
+
+    case :katipo.req(request) do
+      {:ok, %{status: status_code, headers: headers}} when status_code in [204, 304] ->
         response(process_status_code, process_headers, process_response_body, status_code, headers, "")
-      {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "")
-      {:ok, status_code, headers, client} ->
-        case :hackney.body(client) do
-          {:ok, body} -> response(process_status_code, process_headers, process_response_body, status_code, headers, body)
-          {:error, reason} -> {:error, %Error{reason: reason} }
-        end
-      {:ok, id} -> { :ok, %HTTPoison.AsyncResponse{ id: id } }
-      {:error, reason} -> {:error, %Error{reason: reason}}
-     end
+      {:ok, %{status: status_code, headers: headers, body: body}} ->
+        response(process_status_code, process_headers, process_response_body, status_code, headers, body)
+      {:error, %{code: code, message: reason}} -> {:error, %Error{reason: reason, id: code}}
+    end
   end
 
   defp response(process_status_code, process_headers, process_response_body, status_code, headers, body) do

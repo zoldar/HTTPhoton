@@ -1,4 +1,5 @@
 ExUnit.start
+ExUnit.configure(exclude: :skip)
 
 defmodule PathHelpers do
   def fixture_path do

@@ -17,11 +17,13 @@ defmodule HTTPoison.Mixfile do
   end
 
   def application do
-    [applications: [:hackney]]
+    [applications: [:hackney, :katipo]]
   end
 
   defp deps do
     [
+      #{:katipo, "~> 0.2.2"},
+      {:katipo, git: "https://github.com/zoldar/katipo.git", branch: "broken-head", compile: "make"},
       {:hackney, "~> 1.3.1"},
       {:exjsx, "~> 3.1", only: :test},
       {:httparrot, "~> 0.3.4", only: :test},
